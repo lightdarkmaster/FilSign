@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -8,61 +9,156 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
-  int _selectedIndex = 0;
+  late CameraController _cameraController;
+  late Future<void> _initializeControllerFuture;
 
-  static const List<Widget> _cards = <Widget>[
-    Card(
-      child: Center(
-        child: Text('Card 1'),
-      ),
-    ),
-    Card(
-      child: Center(
-        child: Text('Card 2'),
-      ),
-    ),
-    Card(
-      child: Center(
-        child: Text('Card 3'),
-      ),
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _initializeCamera();
+  }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  Future<void> _initializeCamera() async {
+    try {
+      final cameras = await availableCameras();
+      if (cameras.isEmpty) {
+        throw Exception("No cameras found on device.");
+      }
+
+      final firstCamera = cameras.first;
+
+      _cameraController = CameraController(firstCamera, ResolutionPreset.high);
+
+      _initializeControllerFuture = _cameraController.initialize().then((_) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    } catch (e) {
+      debugPrint("Camera initialization error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Camera initialization failed: $e')),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _cameraController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Homepage'),
+        title: const Text('FilSign'),
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [
+                Color.fromARGB(255, 160, 58, 183),
+                Color.fromARGB(255, 253, 78, 224),
+                Color.fromARGB(255, 237, 77, 255),
+              ],
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
       ),
       body: Center(
-        child: _cards[_selectedIndex],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.business),
-            label: 'Business',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.school),
-            label: 'School',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber[800],
-        onTap: _onItemTapped,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'FilSign Mobile Camera',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                  colors: [
+                    Color.fromARGB(255, 160, 58, 183),
+                    Color.fromARGB(255, 253, 78, 224),
+                    Color.fromARGB(255, 237, 77, 255),
+                  ],
+                ),
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+              ),
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  try {
+                    await _initializeControllerFuture;
+                    if (!mounted) return;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            CameraPage(cameraController: _cameraController),
+                      ),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error opening camera: $e')),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.camera_alt),
+                label: const Text('Open Camera'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
-//add sample comment
+
+class CameraPage extends StatelessWidget {
+  final CameraController cameraController;
+
+  const CameraPage({super.key, required this.cameraController});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Camera View'),
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [
+                Color.fromARGB(255, 237, 77, 255),
+                Color.fromARGB(255, 253, 78, 224),
+                Color.fromARGB(255, 237, 77, 255),
+              ],
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
+      ),
+      body: CameraPreview(cameraController),
+    );
+  }
+}
