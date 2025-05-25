@@ -10,8 +10,9 @@ class CameraComponent extends StatefulWidget {
 }
 
 class _CameraComponentState extends State<CameraComponent> {
-  late CameraController _controller;
+  CameraController? _controller;
   late Future<void> _initializeControllerFuture;
+  bool _isRecording = false;
 
   @override
   void initState() {
@@ -22,21 +23,58 @@ class _CameraComponentState extends State<CameraComponent> {
   Future<void> _setupCamera() async {
     try {
       final cameras = await availableCameras();
-      final camera = cameras.first;
+      if (cameras.isEmpty) {
+        throw Exception("No cameras found on device.");
+      }
+
       _controller = CameraController(
-        camera,
+        cameras.first,
         ResolutionPreset.high,
         enableAudio: true,
       );
-      await _controller.initialize();
+      await _controller!.initialize();
+      if (mounted) {
+        setState(() {}); // Rebuild after controller is initialized
+      }
     } catch (e) {
       debugPrint('Camera initialization error: $e');
     }
   }
 
+  Future<void> _startVideoRecording() async {
+    if (_controller?.value.isInitialized == true &&
+        !_controller!.value.isRecordingVideo) {
+      try {
+        await _controller!.startVideoRecording();
+        if (mounted) {
+          setState(() {
+            _isRecording = true;
+          });
+        }
+      } catch (e) {
+        debugPrint('Error starting video recording: $e');
+      }
+    }
+  }
+
+  Future<void> _stopVideoRecording() async {
+    if (_controller?.value.isRecordingVideo == true) {
+      try {
+        await _controller!.stopVideoRecording();
+        if (mounted) {
+          setState(() {
+            _isRecording = false;
+          });
+        }
+      } catch (e) {
+        debugPrint('Error stopping video recording: $e');
+      }
+    }
+  }
+
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -45,8 +83,44 @@ class _CameraComponentState extends State<CameraComponent> {
     return FutureBuilder<void>(
       future: _initializeControllerFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          return CameraPreview(_controller);
+        if (snapshot.connectionState == ConnectionState.done &&
+            _controller?.value.isInitialized == true) {
+          return Column(
+            children: [
+              Expanded(child: CameraPreview(_controller!)),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _isRecording ? null : _startVideoRecording,
+                      icon: const Icon(Icons.videocam),
+                      label: const Text('Start Recording'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        textStyle: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    ElevatedButton.icon(
+                      onPressed: _isRecording ? _stopVideoRecording : null,
+                      icon: const Icon(Icons.stop),
+                      label: const Text('Stop Recording'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        textStyle: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
         } else if (snapshot.hasError) {
           return Center(child: Text('Camera error: ${snapshot.error}'));
         } else {

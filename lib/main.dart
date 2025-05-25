@@ -1,4 +1,5 @@
 import 'package:filsign/pages/camera.dart';
+import 'package:filsign/pages/homepage.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const CameraComponent(),
+      home: const Homepage(),
     );
   }
 }
