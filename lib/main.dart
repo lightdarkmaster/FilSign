@@ -1,4 +1,3 @@
-import 'package:filsign/pages/camera.dart';
 import 'package:filsign/pages/homepage.dart';
 import 'package:flutter/material.dart';
 
