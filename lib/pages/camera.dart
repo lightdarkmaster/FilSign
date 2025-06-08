@@ -80,53 +80,76 @@ class _CameraComponentState extends State<CameraComponent> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<void>(
-      future: _initializeControllerFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
-            _controller?.value.isInitialized == true) {
-          return Column(
-            children: [
-              Expanded(child: CameraPreview(_controller!)),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: _isRecording ? null : _startVideoRecording,
-                      icon: const Icon(Icons.videocam),
-                      label: const Text('Start Recording'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 12),
-                        textStyle: const TextStyle(fontSize: 16),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Camera'),
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [
+                Color.fromARGB(255, 160, 58, 183),
+                Color.fromARGB(255, 253, 78, 224),
+                Color.fromARGB(255, 237, 77, 255),
+              ],
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
+      ),
+      body: FutureBuilder<void>(
+        future: _initializeControllerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done &&
+              _controller?.value.isInitialized == true) {
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                CameraPreview(_controller!),
+                // Floating button at the bottom center
+                Positioned(
+                  bottom: 40,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: _isRecording
+                          ? _stopVideoRecording
+                          : _startVideoRecording,
+                      child: Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 3),
+                          gradient: LinearGradient(
+                            colors: [
+                              Color.fromARGB(255, 160, 58, 183),
+                              Color.fromARGB(255, 253, 78, 224),
+                              Color.fromARGB(255, 237, 77, 255),
+                            ],
+                          ),
+                        ),
+                        child: Icon(
+                          _isRecording ? Icons.stop : Icons.videocam,
+                          color: Colors.white,
+                          size: 35,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    ElevatedButton.icon(
-                      onPressed: _isRecording ? _stopVideoRecording : null,
-                      icon: const Icon(Icons.stop),
-                      label: const Text('Stop Recording'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 12),
-                        textStyle: const TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
-          );
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Camera error: ${snapshot.error}'));
-        } else {
-          return const Center(child: CircularProgressIndicator());
-        }
-      },
+              ],
+            );
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Camera error: ${snapshot.error}'));
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        },
+      ),
     );
   }
 }
