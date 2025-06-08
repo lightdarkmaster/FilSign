@@ -1,3 +1,4 @@
+import 'package:filsign/pages/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 
@@ -100,7 +101,7 @@ class _HomepageState extends State<Homepage> {
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            CameraPage(cameraController: _cameraController),
+                            CameraComponent(),
                       ),
                     );
                   } catch (e) {
@@ -128,37 +129,6 @@ class _HomepageState extends State<Homepage> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class CameraPage extends StatelessWidget {
-  final CameraController cameraController;
-
-  const CameraPage({super.key, required this.cameraController});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Camera View'),
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-              colors: [
-                Color.fromARGB(255, 237, 77, 255),
-                Color.fromARGB(255, 253, 78, 224),
-                Color.fromARGB(255, 237, 77, 255),
-              ],
-            ),
-          ),
-        ),
-        foregroundColor: Colors.white,
-      ),
-      body: CameraPreview(cameraController),
     );
   }
 }
