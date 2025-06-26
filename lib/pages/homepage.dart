@@ -1,6 +1,7 @@
 import 'package:filsign/pages/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter_svg/flutter_svg.dart'; // added for SVG support
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -70,64 +71,75 @@ class _HomepageState extends State<Homepage> {
         ),
         foregroundColor: Colors.white,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'FilSign Mobile Camera',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                  colors: [
-                    Color.fromARGB(255, 160, 58, 183),
-                    Color.fromARGB(255, 253, 78, 224),
-                    Color.fromARGB(255, 237, 77, 255),
-                  ],
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // SVG background
+          SvgPicture.asset(
+            'assets/bg.svg',
+            fit: BoxFit.cover,
+          ),
+          // Main content
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'FilSign Mobile Camera',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
-                borderRadius: BorderRadius.all(Radius.circular(10)),
-              ),
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  try {
-                    await _initializeControllerFuture;
-                    if (!mounted) return;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            CameraComponent(),
+                const SizedBox(height: 20),
+                Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                      colors: [
+                        Color.fromARGB(255, 160, 58, 183),
+                        Color.fromARGB(255, 253, 78, 224),
+                        Color.fromARGB(255, 237, 77, 255),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      try {
+                        await _initializeControllerFuture;
+                        if (!mounted) return;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CameraComponent(
+                            ),
+                          ),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error opening camera: $e')),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.camera_alt),
+                    label: const Text('Open Camera'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
                       ),
-                    );
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error opening camera: $e')),
-                    );
-                  }
-                },
-                icon: const Icon(Icons.camera_alt),
-                label: const Text('Open Camera'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
